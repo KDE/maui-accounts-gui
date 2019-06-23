@@ -7,5 +7,6 @@
         <file>icons/menu.png</file>
         <file>icons/back.png</file>
         <file>icons/spinner.gif</file>
+        <file>AddAccountForm/AddAccountForm.qml</file>
     </qresource>
 </RCC>

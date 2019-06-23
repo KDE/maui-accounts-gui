@@ -83,27 +83,6 @@ ApplicationWindow {
 
     ListModel {
         id: listmodelAccounts
-
-        ListElement {
-            accountName: "anupam - Opendesktop"
-            name: "Opendesktop"
-            username: "ab0027"
-        }
-    }
-
-    RoundButton {
-        width: Qt.platform.os == "Android" ? 64 : 48
-        height: Qt.platform.os == "Android" ? 64 : 48
-        icon.source: "icons/back.png"
-        z: 100
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 16
-        anchors.right: parent.right
-        anchors.rightMargin: 16
-        visible: stackPages.currentIndex > 0
-        onClicked: {
-            backPressed()
-        }
     }
 
     StackLayout {
@@ -256,120 +235,28 @@ ApplicationWindow {
                 font.pointSize: Qt.platform.os == "Android" ? 24 : 14
                 font.bold: true
                 onClicked: {
-                    stackPages.currentIndex = 1
+                     stackPages.currentIndex = 1
                 }
             }
         }
 
-        SwipeView {
-            id: swipeView
-            interactive: false
-            Layout.fillWidth: true
+        AddAccountForm {
+            id: addAccountForm
             Layout.fillHeight: true
-            currentIndex: 0
+            Layout.fillWidth: true
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    Button {
-                        text: "OpenDesktop"
-                        Layout.minimumWidth: 250
-                        onClicked: {
-                            inputServer.text = ""
-                            inputServer.visible = false
-                            buttonAddAccountOpendesktop.visible = true
-                            buttonAddAccountCustom.visible = false
-
-                            swipeView.setCurrentIndex(1)
-                        }
-                    }
-                    Button {
-                        text: "Custom Server"
-                        Layout.minimumWidth: 250
-                        onClicked: {
-                            inputServer.visible = true
-                            buttonAddAccountOpendesktop.visible = false
-                            buttonAddAccountCustom.visible = true
-
-                            swipeView.setCurrentIndex(1)
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                id: rectangle
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                ColumnLayout {
-                    anchors.top: parent.top
-                    anchors.topMargin: 16
-                    anchors.left: parent.left
-                    anchors.leftMargin: 16
-                    anchors.right: parent.right
-                    anchors.rightMargin: 16
-
-                    ComboBox {
-                        id: inputProtocol
-                        Layout.fillWidth: true
-                        textRole: "value"
-                        visible: false
-
-                        model: ListModel {
-                            id: inputProtocolModel
-                            ListElement {
-                                key: "carddav"
-                                value: "CardDAV"
-                            }
-                            ListElement {
-                                key: "caldav"
-                                value: "CalDAV"
-                            }
-                        }
-                    }
-
-                    TextField {
-                        id: inputServer
-                        Layout.fillWidth: true
-                        placeholderText: "Server Address"
-                    }
-
-                    TextField {
-                        id: inputUsername
-                        Layout.fillWidth: true
-                        placeholderText: "Username"
-                    }
-
-                    TextField {
-                        id: inputPassword
-                        Layout.fillWidth: true
-                        placeholderText: "Password"
-                        echoMode: TextInput.PasswordEchoOnEdit
-                    }
-
-                    Button {
-                        id: buttonAddAccountOpendesktop
-                        text: qsTr("Add Account")
-                        Layout.minimumWidth: 250
-                        Layout.alignment: Qt.AlignHCenter
-                        onClicked: {
-                            Accounts.MainViewController.addOpendesktopAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputUsername.text, inputPassword.text)
-                        }
-                    }
-
-                    Button {
-                        id: buttonAddAccountCustom
-                        text: qsTr("Add Account")
-                        Layout.minimumWidth: 250
-                        Layout.alignment: Qt.AlignHCenter
-                        onClicked: {
-                            Accounts.MainViewController.addCustomAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputServer.text, inputUsername.text, inputPassword.text)
-                        }
-                    }
+            RoundButton {
+                width: Qt.platform.os == "Android" ? 64 : 48
+                height: Qt.platform.os == "Android" ? 64 : 48
+                icon.source: "icons/back.png"
+                z: 100
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 16
+                anchors.right: parent.right
+                anchors.rightMargin: 16
+                visible: stackPages.currentIndex > 0 && addAccountForm.swipeView.currentIndex == 0
+                onClicked: {
+                    stackPages.currentIndex = 0
                 }
             }
         }
@@ -377,15 +264,6 @@ ApplicationWindow {
 
     Connections {
         target: Accounts.MainViewController
-
-        onAccountAdded: {
-            stackPages.currentIndex = 0;
-            swipeView.setCurrentIndex(0)
-
-            inputServer.text = ""
-            inputUsername.text = ""
-            inputPassword.text = ""
-        }
 
         onAccountList: {
             listmodelAccounts.clear()
@@ -401,29 +279,19 @@ ApplicationWindow {
             }
         }
 
-        onShowIndefiniteProgress: {
-            progressDialogText.text = message
-            progressDialog.open()
-        }
+//        onShowIndefiniteProgress: {
+//            progressDialogText.text = message
+//            progressDialog.open()
+//        }
 
-        onHideIndefiniteProgress: {
-            progressDialogText.text = ""
-            progressDialog.close()
-        }
+//        onHideIndefiniteProgress: {
+//            progressDialogText.text = ""
+//            progressDialog.close()
+//        }
     }
 
     Component.onCompleted: {
         Accounts.MainViewController.getAccountList()
-    }
-
-    function backPressed() {
-        if (swipeView.currentIndex > 0) {
-            close.accepted = false
-            swipeView.setCurrentIndex(swipeView.currentIndex-1)
-        } else if (stackPages.currentIndex > 0) {
-            close.accepted = false
-            stackPages.currentIndex--;
-        }
     }
 }
 
@@ -597,3 +465,8 @@ ApplicationWindow {
 
 
 
+
+/*##^## Designer {
+    D{i:0;autoSize:true;height:480;width:640}
+}
+ ##^##*/
