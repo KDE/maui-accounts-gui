@@ -77,8 +77,6 @@ int main(int argc, char* argv[]) {
 
   app.setApplicationName("Accounts");
   app.setApplicationVersion("0.4.0");
-  //  SyncThread* s = new SyncThread(username_str, password_str, url_str);
-  //  s->start();
   app.setApplicationDisplayName("Accounts");
 
   qmlRegisterSingletonType<MainViewController>(
