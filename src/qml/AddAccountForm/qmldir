@@ -1,0 +1,3 @@
+module org.mauikit.accounts
+AddAccountForm 1.0 AddAccountForm.qml
+plugin mauiaccountsgui

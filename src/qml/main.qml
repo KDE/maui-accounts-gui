@@ -36,7 +36,7 @@ ApplicationWindow {
             visible: stackPages.currentIndex == 0
 
             onClicked: {
-                Accounts.MainViewController.getAccountList()
+                Accounts.Controller.getAccountList()
             }
         }
     }
@@ -162,7 +162,7 @@ ApplicationWindow {
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    Accounts.MainViewController.showUrl(listmodelAccounts.get(index).accountName)
+                                    Accounts.Controller.showUrl(listmodelAccounts.get(index).accountName)
                                 }
                             }
 
@@ -172,14 +172,14 @@ ApplicationWindow {
                                 MenuItem {
                                     text: "Sync Now"
                                     onClicked: {
-                                        Accounts.MainViewController.syncAccount(listmodelAccounts.get(index).accountName)
+                                        Accounts.Controller.syncAccount(listmodelAccounts.get(index).accountName)
                                     }
                                 }
 
                                 MenuItem {
                                     text: "Remove"
                                     onClicked: {
-                                        Accounts.MainViewController.removeAccount(listmodelAccounts.get(index).accountName)
+                                        Accounts.Controller.removeAccount(listmodelAccounts.get(index).accountName)
                                     }
                                 }
                             }
@@ -240,7 +240,7 @@ ApplicationWindow {
             }
         }
 
-        AddAccountForm {
+        Accounts.AddAccountForm {
             id: addAccountForm
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -263,7 +263,7 @@ ApplicationWindow {
     }
 
     Connections {
-        target: Accounts.MainViewController
+        target: Accounts.Controller
 
         onAccountList: {
             listmodelAccounts.clear()
@@ -291,7 +291,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        Accounts.MainViewController.getAccountList()
+        Accounts.Controller.getAccountList()
     }
 }
 

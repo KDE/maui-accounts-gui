@@ -117,7 +117,7 @@ Item {
                     Layout.minimumWidth: 250
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        Accounts.MainViewController.addOpendesktopAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputUsername.text, inputPassword.text)
+                        Accounts.Controller.addOpendesktopAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputUsername.text, inputPassword.text)
                     }
                 }
 
@@ -127,14 +127,14 @@ Item {
                     Layout.minimumWidth: 250
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        Accounts.MainViewController.addCustomAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputServer.text, inputUsername.text, inputPassword.text)
+                        Accounts.Controller.addCustomAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputServer.text, inputUsername.text, inputPassword.text)
                     }
                 }
             }
         }
 
         Connections {
-            target: Accounts.MainViewController
+            target: Accounts.Controller
 
             onAccountAdded: {
                 swipeView.setCurrentIndex(0);

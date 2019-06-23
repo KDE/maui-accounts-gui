@@ -45,7 +45,6 @@ set(
     src/main.cpp
     src/entities/SyncManager.cpp
     src/entities/LocalContacts.cpp
-    src/viewcontrollers/MainViewController.cpp
 )
 
 set(
@@ -75,6 +74,31 @@ target_link_libraries(
 install(TARGETS maui-accounts-gui DESTINATION bin)
 ### END maui-accounts-gui
 
+### libmauiaccountsgui
+set(
+    LIBMAUIACCOUNTSGUI_SRCS
+
+    src/viewcontrollers/MainViewController.cpp
+    src/viewcontrollers/MainControllerQmlPlugin.cpp
+)
+
+add_library(
+    mauiaccountsgui
+
+    ${LIBMAUIACCOUNTSGUI_SRCS}
+)
+target_link_libraries(
+    mauiaccountsgui
+
+    Qt5::Qml
+    Qt5::Network
+    Qt5::DBus
+)
+install(TARGETS mauiaccountsgui DESTINATION /usr/lib/x86_64-linux-gnu/qt5/qml/org/mauikit/accounts)
+### END libmauiaccountsgui
+
+install(DIRECTORY src/qml/AddAccountForm/ DESTINATION
+    /usr/lib/x86_64-linux-gnu/qt5/qml/org/mauikit/accounts/)
 
 
 # CPack Configuration

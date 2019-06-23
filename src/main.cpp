@@ -1,5 +1,5 @@
 #include "entities/SyncManager.hpp"
-#include "viewcontrollers/MainViewController.hpp"
+// #include "viewcontrollers/MainViewController.hpp"
 
 #ifdef ANDROID
 #include <jni.h>
@@ -12,9 +12,6 @@
 #include <QQmlApplicationEngine>
 #include <QThread>
 #include <QTimer>
-
-const char* uri = "org.mauikit.accounts";
-MainViewController* mainviewcontroller = nullptr;
 
 #ifdef ANDROID
 extern "C" {
@@ -54,18 +51,6 @@ Java_org_mauikit_accounts_syncadapter_ContactsSyncAdapter_performSync(
 }
 #endif
 
-static QObject* mainviewcontroller_singleton_provider(QQmlEngine* engine,
-                                                      QJSEngine* scriptEngine) {
-  Q_UNUSED(engine)
-  Q_UNUSED(scriptEngine)
-
-  if (mainviewcontroller == nullptr) {
-    mainviewcontroller = new MainViewController();
-  }
-
-  return mainviewcontroller;
-}
-
 int main(int argc, char* argv[]) {
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QLoggingCategory::setFilterRules("default.debug=true");
@@ -78,9 +63,6 @@ int main(int argc, char* argv[]) {
   app.setApplicationName("Accounts");
   app.setApplicationVersion("0.4.0");
   app.setApplicationDisplayName("Accounts");
-
-  qmlRegisterSingletonType<MainViewController>(
-      uri, 1, 0, "MainViewController", mainviewcontroller_singleton_provider);
 
   engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
   if (engine.rootObjects().isEmpty()) return -1;

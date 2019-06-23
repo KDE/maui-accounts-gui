@@ -10,6 +10,7 @@
 #include <QtAndroidExtras/QAndroidJniObject>
 #else
 #include <QDBusReply>
+#include <QQmlExtensionPlugin>
 #endif
 
 #include <QDebug>
