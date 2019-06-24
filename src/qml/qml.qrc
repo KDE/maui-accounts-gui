@@ -8,5 +8,6 @@
         <file>icons/back.png</file>
         <file>icons/spinner.gif</file>
         <file>AddAccountForm/AddAccountForm.qml</file>
+        <file>utils.js</file>
     </qresource>
 </RCC>

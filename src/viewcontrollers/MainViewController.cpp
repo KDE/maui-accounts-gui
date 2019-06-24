@@ -10,7 +10,10 @@
 #include <QtAndroidExtras/QAndroidJniObject>
 #else
 #include <QDBusReply>
+#include <QFile>
 #include <QQmlExtensionPlugin>
+#include <QTimer>
+#include <QtConcurrent>
 #endif
 
 #include <QDebug>
@@ -18,7 +21,6 @@
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QStandardPaths>
-#include <QTimer>
 
 #ifdef ANDROID
 void MainViewController::addOpendesktopAccount(QString protocol,
@@ -173,7 +175,20 @@ QDBusInterface* MainViewController::dbusInterfaceFactory(QString service,
   return nullptr;
 }
 
-void MainViewController::addOpendesktopAccount(QString protocol,
+MainViewController::MainViewController() {
+  mauiAccountsDBusInterface = dbusInterfaceFactory(
+      MAUI_ACCOUNTS_DBUS_SERVICE_NAME, MAUI_ACCOUNTS_DBUS_INTERFACE_NAME,
+      MAUI_ACCOUNTS_DBUS_INTERFACE_PATH);
+
+  if (mauiAccountsDBusInterface == nullptr) {
+    qDebug()
+        << "Could not connect `org.mauikit.accounts` System DBus.. Exiting..";
+
+    QCoreApplication::exit(1);
+  }
+}
+
+void MainViewController::addOpendesktopAccount(QString appId, QString protocol,
                                                QString username,
                                                QString password) {
   qDebug() << "Adding Opendesktop Account `" + username + "`";
@@ -183,51 +198,138 @@ void MainViewController::addOpendesktopAccount(QString protocol,
       "https://cloud.opendesktop.cc/remote.php/dav/addressbooks/users/" +
       username + "/contacts";
 
-  addAccount(protocol, url, username, password, accountName);
+  addAccount(appId, protocol, url, username, password);
 }
 
-void MainViewController::addCustomAccount(QString protocol, QString server,
-                                          QString username, QString password) {
+void MainViewController::addCustomAccount(QString appId, QString protocol,
+                                          QString server, QString username,
+                                          QString password) {
   qDebug() << "Adding Opendesktop Account `" + username + "`";
 
-  addAccount(protocol, server, username, password, username);
+  addAccount(appId, protocol, server, username, password);
 }
 
 void MainViewController::getAccountList() {
-  QDBusInterface* iface = dbusInterfaceFactory(
-      MAUI_ACCOUNTS_DBUS_SERVICE_NAME, MAUI_ACCOUNTS_DBUS_INTERFACE_NAME,
-      MAUI_ACCOUNTS_DBUS_INTERFACE_PATH);
+  QList<QString> accountNamesStringList;
 
-  if (iface != nullptr) {
-    QList<QString> accountNamesStringList;
+  QDBusReply<QList<QVariant> > reply =
+      mauiAccountsDBusInterface->call("getAccountIds");
 
-    QDBusReply<QList<QVariant> > reply = iface->call("getAccountNames");
-    if (reply.isValid()) {
-      QList<QVariant> accountNames = reply.value();
-      qDebug() << "[DBus] getAccountNames :" << accountNames;
+  QList<QVariant> accountIds = reply.value();
 
-      for (QVariant accountName : accountNames) {
-        accountNamesStringList.append(accountName.toString());
+  for (QVariant accountId : accountIds) {
+    QDBusReply<QMap<QString, QVariant> > reply =
+        mauiAccountsDBusInterface->call("getAccount", accountId);
+    QMap<QString, QVariant> accountData = reply.value();
+
+    accountNamesStringList.append(
+        generateAccountName(accountData.value("username").toString(),
+                            QUrl(accountData.value("url").toString()).host()));
+
+    accountsData.append(accountData);
+  }
+
+  emit accountList(accountNamesStringList);
+}
+
+void MainViewController::removeAccount(QString accountName) {
+  for (QMap<QString, QVariant> accountData : accountsData) {
+    if (accountData.value("username").toString() ==
+            getUsernameFromAccountName(accountName) &&
+        QUrl(accountData.value("url").toString()).host() ==
+            getHostFromAccountName(accountName)) {
+      qDebug() << "Removing Account with id `" +
+                      accountData.value("id").toString() + "`";
+
+      QDBusReply<bool> reply = mauiAccountsDBusInterface->call(
+          "removeAccount", accountData.value("id").toString());
+
+      if (reply.value()) {
+        getAccountList();
+        break;
       }
-
-      emit accountList(accountNamesStringList);
-    } else {
-      fprintf(stderr, "Call failed: %s\n", qPrintable(reply.error().message()));
     }
   }
 }
 
-void MainViewController::removeAccount(QString accountName) {
-  getAccountList();
-}
+void MainViewController::syncAccount(QString appId) {
+  qDebug() << "Syncing Account with appId `" + appId + "`";
 
-void MainViewController::syncAccount(QString accountName) {}
+  QFile manifestJsonFile(getManifestPath(appId));
+
+  if (!manifestJsonFile.open(QIODevice::ReadWrite)) {
+    qWarning("Couldn't open config file.");
+  }
+
+  QJsonObject accountsJsonObject =
+      QJsonDocument::fromJson(manifestJsonFile.readAll()).object();
+  QString syncCommand = accountsJsonObject["syncCommand"].toString();
+  manifestJsonFile.close();
+
+  QtConcurrent::run([=]() {
+    QEventLoop loop;
+    QProcess process;
+
+    qDebug().noquote() << "[SYNC_START]";
+
+    process.start(syncCommand);
+    connect(&process, &QProcess::readyReadStandardOutput, [&process]() {
+      qDebug().noquote() << "[SYNC_OUTPUT]" << process.readAllStandardOutput();
+    });
+    connect(&process, &QProcess::readyReadStandardError, [&process]() {
+      qDebug().noquote() << "[SYNC_ERROR]" << process.readAllStandardError();
+    });
+    connect(&process,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            [=, &loop](int exitCode, QProcess::ExitStatus exitStatus) {
+              qDebug().noquote() << "[SYNC_END]" << exitStatus;
+              QTimer::singleShot(0, &loop, &QEventLoop::quit);
+            });
+    connect(&process, &QProcess::errorOccurred,
+            [=, &loop](QProcess::ProcessError err) {
+              qDebug().noquote() << "[SYNC_ERROR]" << err;
+              qDebug().noquote() << "[SYNC_END]";
+              QTimer::singleShot(0, &loop, &QEventLoop::quit);
+            });
+
+    loop.exec();
+  });
+}
 
 void MainViewController::showUrl(QString accountName) {}
 
-void MainViewController::addAccount(QString protocol, QString url,
-                                    QString username, QString password,
-                                    QString accountName) {}
+void MainViewController::addAccount(QString appId, QString protocol,
+                                    QString url, QString username,
+                                    QString password) {
+  QDBusReply<QString> reply = mauiAccountsDBusInterface->call(
+      "createCardDAVAccount", appId, username, password, url);
+
+  if (reply.isValid()) {
+    QString createAccountReply = reply.value();
+    qDebug() << "[DBus] createCardDAVAccount :" << createAccountReply;
+
+    emit accountAdded(createAccountReply);
+  } else {
+    qDebug() << mauiAccountsDBusInterface->lastError();
+  }
+}
+
+QString MainViewController::getManifestPath(QString appId) {
+  return "/usr/share/maui-accounts/manifests/" + appId + ".json";
+}
+
+QString MainViewController::generateAccountName(QString username,
+                                                QString host) {
+  return username + " - " + host;
+}
+
+QString MainViewController::getHostFromAccountName(QString accountName) {
+  return accountName.split(" - ").at(1);
+}
+
+QString MainViewController::getUsernameFromAccountName(QString accountName) {
+  return accountName.split(" - ").at(0);
+}
 
 void MainViewController::showToast(QString text) {}
 

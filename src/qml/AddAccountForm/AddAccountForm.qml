@@ -5,7 +5,9 @@ import QtQuick.Layouts 1.3
 import org.mauikit.accounts 1.0 as Accounts
 
 Item {
-    property alias swipeView: swipeView
+    property alias swipeView: swipeView;
+    property string appId;
+    signal accountAdded(string secret);
 
     SwipeView {
         id: swipeView
@@ -117,7 +119,7 @@ Item {
                     Layout.minimumWidth: 250
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        Accounts.Controller.addOpendesktopAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputUsername.text, inputPassword.text)
+                        Accounts.Controller.addOpendesktopAccount(appId, inputProtocolModel.get(inputProtocol.currentIndex).key, inputUsername.text, inputPassword.text)
                     }
                 }
 
@@ -127,7 +129,7 @@ Item {
                     Layout.minimumWidth: 250
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: {
-                        Accounts.Controller.addCustomAccount(inputProtocolModel.get(inputProtocol.currentIndex).key, inputServer.text, inputUsername.text, inputPassword.text)
+                        Accounts.Controller.addCustomAccount(appId, inputProtocolModel.get(inputProtocol.currentIndex).key, inputServer.text, inputUsername.text, inputPassword.text)
                     }
                 }
             }
@@ -138,6 +140,8 @@ Item {
 
             onAccountAdded: {
                 swipeView.setCurrentIndex(0);
+
+                accountAdded(secret);
 
                 inputServer.text = ""
                 inputUsername.text = ""

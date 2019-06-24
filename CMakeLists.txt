@@ -93,6 +93,7 @@ target_link_libraries(
     Qt5::Qml
     Qt5::Network
     Qt5::DBus
+    Qt5::Concurrent
 )
 install(TARGETS mauiaccountsgui DESTINATION /usr/lib/x86_64-linux-gnu/qt5/qml/org/mauikit/accounts)
 ### END libmauiaccountsgui

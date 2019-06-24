@@ -4,6 +4,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 
 import org.mauikit.accounts 1.0 as Accounts
+import "utils.js" as Utils
 
 ApplicationWindow {
     id: home
@@ -13,12 +14,12 @@ ApplicationWindow {
     header: ToolBar {
         id: menuBar
         width: parent.width
-        height: Qt.platform.os == "Android" ? 64 : 48
+        height: Utils.isAndroid() ? 64 : 48
 
         Label {
             id: labelAppName
             text: "Accounts"
-            font.pointSize: Qt.platform.os == "Android" ? 24 : 12
+            font.pointSize: Utils.isAndroid() ? 24 : 12
             verticalAlignment: Text.AlignVCenter
             anchors.left: parent.left
             anchors.leftMargin: 16
@@ -41,7 +42,7 @@ ApplicationWindow {
         }
     }
     onClosing: {
-        if (Qt.platform.os == "Android") {
+        if (Utils.isAndroid()) {
             backPressed()
         } else {
             close.accepted = true
@@ -172,7 +173,8 @@ ApplicationWindow {
                                 MenuItem {
                                     text: "Sync Now"
                                     onClicked: {
-                                        Accounts.Controller.syncAccount(listmodelAccounts.get(index).accountName)
+                                        // Accounts.Controller.syncAccount(listmodelAccounts.get(index).accountName)
+                                        Accounts.Controller.syncAccount(appId)
                                     }
                                 }
 
@@ -198,7 +200,7 @@ ApplicationWindow {
 
                                     Text {
                                         text: name
-                                        font.pointSize: Qt.platform.os == "Android" ? 14 : 10
+                                        font.pointSize: Utils.isAndroid() ? 14 : 10
                                         font.bold: true
                                     }
                                     Text {
@@ -225,14 +227,15 @@ ApplicationWindow {
             }
 
             RoundButton {
-                width: Qt.platform.os == "Android" ? 64 : 48
-                height: Qt.platform.os == "Android" ? 64 : 48
+                visible: Utils.isAndroid()
+                width: Utils.isAndroid() ? 64 : 48
+                height: Utils.isAndroid() ? 64 : 48
                 text: "+"
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 16
                 anchors.right: parent.right
                 anchors.rightMargin: 16
-                font.pointSize: Qt.platform.os == "Android" ? 24 : 14
+                font.pointSize: Utils.isAndroid() ? 24 : 14
                 font.bold: true
                 onClicked: {
                      stackPages.currentIndex = 1
@@ -244,10 +247,17 @@ ApplicationWindow {
             id: addAccountForm
             Layout.fillHeight: true
             Layout.fillWidth: true
+            appId: "org.mauikit.test"
+            onAccountAdded: {
+                console.log("Account Secret :", secret)
+
+                stackPages.currentIndex = 0
+                Accounts.Controller.getAccountList()
+            }
 
             RoundButton {
-                width: Qt.platform.os == "Android" ? 64 : 48
-                height: Qt.platform.os == "Android" ? 64 : 48
+                width: Utils.isAndroid() ? 64 : 48
+                height: Utils.isAndroid() ? 64 : 48
                 icon.source: "icons/back.png"
                 z: 100
                 anchors.bottom: parent.bottom
