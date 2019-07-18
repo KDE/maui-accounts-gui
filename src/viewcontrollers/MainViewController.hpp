@@ -6,6 +6,7 @@
 
 #ifndef ANDROID
 #include <QDBusInterface>
+#include <QJsonArray>
 #include <QList>
 #endif
 
@@ -25,12 +26,12 @@ class MainViewController : public QObject {
 
  signals:
   void accountAdded(QString secret);
+  void accountList(QJsonArray accounts);
 
  private:
   const QString MAUI_ACCOUNTS_DBUS_SERVICE_NAME = "org.mauikit.accounts";
   const QString MAUI_ACCOUNTS_DBUS_INTERFACE_NAME = "org.mauikit.accounts";
   const QString MAUI_ACCOUNTS_DBUS_INTERFACE_PATH = "/";
-  QList<QMap<QString, QVariant>> accountsData;
   QDBusInterface* mauiAccountsDBusInterface;
 
   QDBusInterface* dbusInterfaceFactory(QString service, QString interface,
@@ -52,24 +53,20 @@ class MainViewController : public QObject {
 
  signals:
   void accountAdded();
+  void accountList(QList<QString> accounts);
 
  private:
   void addAccount(QString protocol, QString url, QString username,
                   QString password, QString accountName);
+  void showToast(QString text);
+  void showIndefiniteProgressDialog(QString message, bool isCancelable);
+  void hideIndefiniteProgressDialog();
 #endif
 
  public slots:
   void getAccountList();
   void removeAccount(QString accountName);
   void showUrl(QString accountName);
-
- signals:
-  void accountList(QList<QString> accounts);
-
- private:
-  void showToast(QString text);
-  void showIndefiniteProgressDialog(QString message, bool isCancelable);
-  void hideIndefiniteProgressDialog();
 };
 
 #endif

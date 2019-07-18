@@ -163,7 +163,7 @@ ApplicationWindow {
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    Accounts.Controller.showUrl(listmodelAccounts.get(index).accountName)
+                                    Accounts.Controller.showUrl(listmodelAccounts.get(index).url)
                                 }
                             }
 
@@ -173,15 +173,14 @@ ApplicationWindow {
                                 MenuItem {
                                     text: "Sync Now"
                                     onClicked: {
-                                        // Accounts.Controller.syncAccount(listmodelAccounts.get(index).accountName)
-                                        Accounts.Controller.syncAccount(appId)
+                                         Accounts.Controller.syncAccount(listmodelAccounts.get(index).appId)
                                     }
                                 }
 
                                 MenuItem {
                                     text: "Remove"
                                     onClicked: {
-                                        Accounts.Controller.removeAccount(listmodelAccounts.get(index).accountName)
+                                        Accounts.Controller.removeAccount(listmodelAccounts.get(index).id)
                                     }
                                 }
                             }
@@ -199,7 +198,7 @@ ApplicationWindow {
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     Text {
-                                        text: name
+                                        text: host
                                         font.pointSize: Utils.isAndroid() ? 14 : 10
                                         font.bold: true
                                     }
@@ -279,12 +278,16 @@ ApplicationWindow {
             listmodelAccounts.clear()
 
             for (var i=0; i<accounts.length; i++) {
-                var account = accounts[i].split(" - ")
+                var account = accounts[i]
 
                 listmodelAccounts.append({
-                    accountName: accounts[i],
-                    name: account[1],
-                    username: account[0]
+                    accountName: account.username + " - " + account.url,
+                    id: account.id,
+                    appId: account.appId,
+                    type: account.type,
+                    username: account.username,
+                    url: account.url,
+                    host: account.host
                 })
             }
         }

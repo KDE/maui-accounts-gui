@@ -210,7 +210,7 @@ void MainViewController::addCustomAccount(QString appId, QString protocol,
 }
 
 void MainViewController::getAccountList() {
-  QList<QString> accountNamesStringList;
+  QJsonArray accountsArray;
 
   QDBusReply<QList<QVariant> > reply =
       mauiAccountsDBusInterface->call("getAccountIds");
@@ -222,33 +222,27 @@ void MainViewController::getAccountList() {
         mauiAccountsDBusInterface->call("getAccount", accountId);
     QMap<QString, QVariant> accountData = reply.value();
 
-    accountNamesStringList.append(
-        generateAccountName(accountData.value("username").toString(),
-                            QUrl(accountData.value("url").toString()).host()));
+    QJsonObject accountObj = {
+        {"id", accountData.value("id").toString()},
+        {"appId", accountData.value("appId").toString()},
+        {"type", accountData.value("type").toString()},
+        {"username", accountData.value("username").toString()},
+        {"url", accountData.value("url").toString()},
+        {"host", QUrl(accountData.value("url").toString()).host()}};
 
-    accountsData.append(accountData);
+    accountsArray.append(accountObj);
   }
 
-  emit accountList(accountNamesStringList);
+  emit accountList(accountsArray);
 }
 
-void MainViewController::removeAccount(QString accountName) {
-  for (QMap<QString, QVariant> accountData : accountsData) {
-    if (accountData.value("username").toString() ==
-            getUsernameFromAccountName(accountName) &&
-        QUrl(accountData.value("url").toString()).host() ==
-            getHostFromAccountName(accountName)) {
-      qDebug() << "Removing Account with id `" +
-                      accountData.value("id").toString() + "`";
+void MainViewController::removeAccount(QString id) {
+  qDebug() << "Removing Account with id `" + id + "`";
 
-      QDBusReply<bool> reply = mauiAccountsDBusInterface->call(
-          "removeAccount", accountData.value("id").toString());
+  QDBusReply<bool> reply = mauiAccountsDBusInterface->call("removeAccount", id);
 
-      if (reply.value()) {
-        getAccountList();
-        break;
-      }
-    }
+  if (reply.value()) {
+    getAccountList();
   }
 }
 
@@ -296,7 +290,9 @@ void MainViewController::syncAccount(QString appId) {
   });
 }
 
-void MainViewController::showUrl(QString accountName) {}
+void MainViewController::showUrl(QString url) {
+  qDebug() << "Show url :" << url;
+}
 
 void MainViewController::addAccount(QString appId, QString protocol,
                                     QString url, QString username,
@@ -330,12 +326,5 @@ QString MainViewController::getHostFromAccountName(QString accountName) {
 QString MainViewController::getUsernameFromAccountName(QString accountName) {
   return accountName.split(" - ").at(0);
 }
-
-void MainViewController::showToast(QString text) {}
-
-void MainViewController::showIndefiniteProgressDialog(QString message,
-                                                      bool isCancelable) {}
-
-void MainViewController::hideIndefiniteProgressDialog() {}
 
 #endif
