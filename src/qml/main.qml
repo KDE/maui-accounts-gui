@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
+import QtQuick.Dialogs 1.2
 
 import org.mauikit.accounts 1.0 as Accounts
 import "utils.js" as Utils
@@ -46,6 +47,28 @@ ApplicationWindow {
             backPressed()
         } else {
             close.accepted = true
+        }
+    }
+
+    Dialog {
+        id: passwordDialog
+
+        standardButtons: StandardButton.Ok | StandardButton.Cancel
+        onAccepted: {
+            Accounts.Controller.setMasterPassword(passwordInput.text)
+            passwordInput.text = ""
+
+            Accounts.Controller.getAccountList()
+        }
+
+        ColumnLayout {
+            Text {
+                text: "Enter Master password to Encrypt/Decrypt secure data"
+            }
+
+            TextField {
+                id: passwordInput
+            }
         }
     }
 
@@ -274,6 +297,16 @@ ApplicationWindow {
     Connections {
         target: Accounts.Controller
 
+        onMasterPasswordNotSet: {
+            console.log("Password not set")
+            passwordDialog.open()
+        }
+
+        onMasterPasswordSet: {
+            console.log("Password already set")
+            Accounts.Controller.getAccountList()
+        }
+
         onAccountList: {
             listmodelAccounts.clear()
 
@@ -304,7 +337,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        Accounts.Controller.getAccountList()
+        Accounts.Controller.checkIfMasterPasswordSet()
     }
 }
 

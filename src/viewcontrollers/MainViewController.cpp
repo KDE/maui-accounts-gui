@@ -290,6 +290,21 @@ void MainViewController::syncAccount(QString appId) {
   });
 }
 
+void MainViewController::setMasterPassword(QString password) {
+  QDBusReply<void> reply =
+      mauiAccountsDBusInterface->call("setPassword", password);
+}
+
+void MainViewController::checkIfMasterPasswordSet() {
+  QDBusReply<bool> reply = mauiAccountsDBusInterface->call("isPasswordSet");
+
+  if (!reply.value()) {
+    emit masterPasswordNotSet();
+  } else {
+    emit masterPasswordSet();
+  }
+}
+
 void MainViewController::showUrl(QString url) {
   qDebug() << "Show url :" << url;
 }

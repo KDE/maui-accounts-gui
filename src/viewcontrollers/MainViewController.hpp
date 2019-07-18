@@ -23,10 +23,15 @@ class MainViewController : public QObject {
   void addCustomAccount(QString appId, QString protocol, QString url,
                         QString username, QString password);
   void syncAccount(QString appId);
+  void setMasterPassword(QString password);
+  void checkIfMasterPasswordSet();
 
  signals:
   void accountAdded(QString secret);
   void accountList(QJsonArray accounts);
+
+  void masterPasswordNotSet();
+  void masterPasswordSet();
 
  private:
   const QString MAUI_ACCOUNTS_DBUS_SERVICE_NAME = "org.mauikit.accounts";
