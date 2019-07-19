@@ -64,10 +64,16 @@ ApplicationWindow {
         ColumnLayout {
             Text {
                 text: "Enter Master password to Encrypt/Decrypt secure data"
+                font.pointSize: 10
             }
 
             TextField {
+                Layout.fillWidth: parent
+                Layout.topMargin: 16
+                Layout.bottomMargin: 16
                 id: passwordInput
+                Layout.preferredHeight: 35
+                placeholderText: "Password"
             }
         }
     }
@@ -340,6 +346,22 @@ ApplicationWindow {
         Accounts.Controller.checkIfMasterPasswordSet()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
